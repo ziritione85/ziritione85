@@ -3,44 +3,51 @@
 
 ```yaml
 - type: custom-api
-  title: NextDNS Analytics
-  cache: 1h
-  url: https://api.nextdns.io/profiles/${NEXTDNS_PROFILE_ID}/analytics/status
-  headers:
-    X-Api-Key: ${NEXTDNS_API_KEY}
+  title: Ghostfolio
+  cache: 5m
+  url: ${GHOSTFOLIO_PUBLIC_URL}
+  # Replace with the URL of your Ghostfolio instance and your public access ID (My Ghostfolio/Access/Add new)
+  # Example: https://your-ghostfolio-instance.com/api/v1/public/YOUR-PUBLIC-ID/portfolio
   template: |
     {{ if eq .Response.StatusCode 200 }}
       <div style="display: flex; justify-content: space-between;">
-        {{ $total := 0.0 }}
-        {{ $blocked := 0.0 }}
-        
-        {{ range .JSON.Array "data" }}
-          {{ $total = add $total (.Int "queries" | toFloat) }}
-          {{ if eq (.String "status") "blocked" }}
-            {{ $blocked = add $blocked (.Int "queries" | toFloat) }}
-          {{ end }}
-        {{ end }}
-        
+        <!-- Sección TODAY -->
         <div style="flex: 1; text-align: center;">
-          <p>Queries</p>
-          <p>{{ printf "%.0f" $total }}</p>
+          <p>TODAY</p>
+          <div style="display: flex; justify-content: center; align-items: center;">
+            <p class="{{ if gt (.JSON.Float "performance.1d.relativeChange") 0.0 }}color-positive{{ else }}color-negative{{ end }}">
+              {{ mul (.JSON.Float "performance.1d.relativeChange") 100 | printf "%.2f" }}%
+              {{ if gt (.JSON.Float "performance.1d.relativeChange") 0.0 }}↑{{ else }}↓{{ end }}
+            </p>
+          </div>
         </div>
-        <div style="flex: 1; text-align: center; color: var(--color-negative);">
-          <p>Blocked</p>
-          <p>{{ printf "%.0f" $blocked }}</p>
-        </div>
+        <!-- Sección YEAR -->
         <div style="flex: 1; text-align: center;">
-          <p>Block Rate</p>
-          {{ if gt $total 0.0 }}
-            <p>{{ div (mul $blocked 100) $total | printf "%.2f" }}%</p>
-          {{ else }}
-            <p>0.00%</p>
-          {{ end }}
+          <p>YEAR</p>
+          <div style="display: flex; justify-content: center; align-items: center;">
+            <p class="{{ if gt (.JSON.Float "performance.ytd.relativeChange") 0.0 }}color-positive{{ else }}color-negative{{ end }}">
+              {{ mul (.JSON.Float "performance.ytd.relativeChange") 100 | printf "%.2f" }}%
+              {{ if gt (.JSON.Float "performance.ytd.relativeChange") 0.0 }}↑{{ else }}↓{{ end }}
+            </p>
+          </div>
+        </div>
+        <!-- Sección TOTAL -->
+        <div style="flex: 1; text-align: center;">
+          <p>TOTAL</p>
+          <div style="display: flex; justify-content: center; align-items: center;">
+            <p class="{{ if gt (.JSON.Float "performance.max.relativeChange") 0.0 }}color-positive{{ else }}color-negative{{ end }}">
+              {{ mul (.JSON.Float "performance.max.relativeChange") 100 | printf "%.2f" }}%
+              {{ if gt (.JSON.Float "performance.max.relativeChange") 0.0 }}↑{{ else }}↓{{ end }}
+            </p>
+          </div>
         </div>
       </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <a href="${GHOSTFOLIO_URL}">Access Ghostfolio →</a>
+      </div>
     {{ else }}
-      <div style="text-align: center; color: var(--color-negative);">
-        Error: {{ .Response.StatusCode }} - {{ .Response.Status }}
+      <div style="text-align: center; color: red;">
+        Error connecting to Ghostfolio: {{ .Response.StatusCode }}
       </div>
     {{ end }}
    ```
