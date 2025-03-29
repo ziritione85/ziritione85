@@ -3,11 +3,11 @@
 
 ```yaml
 - type: custom-api
-  cache: 1h
   title: NextDNS Analytics
-  url: https://api.nextdns.io/profiles/{$PROFILE_ID}/analytics/status
+  cache: 1h
+  url: https://api.nextdns.io/profiles/${NEXTDNS_PROFILE_ID}/analytics/status
   headers:
-    X-Api-Key: {$API_KEY}
+    X-Api-Key: ${NEXTDNS_API_KEY}
   template: |
     {{ if eq .Response.StatusCode 200 }}
       <div style="display: flex; justify-content: space-between;">
@@ -17,7 +17,7 @@
         {{ range .JSON.Array "data" }}
           {{ $total = add $total (.Int "queries" | toFloat) }}
           {{ if eq (.String "status") "blocked" }}
-            {{ $blocked = .Int "queries" | toFloat }}
+            {{ $blocked = add $blocked (.Int "queries" | toFloat) }}
           {{ end }}
         {{ end }}
         
@@ -25,23 +25,27 @@
           <p>Queries</p>
           <p>{{ printf "%.0f" $total }}</p>
         </div>
-        <div style="flex: 1; text-align: center; color: red;">
+        <div style="flex: 1; text-align: center; color: var(--color-negative);">
           <p>Blocked</p>
           <p>{{ printf "%.0f" $blocked }}</p>
         </div>
         <div style="flex: 1; text-align: center;">
-          <p>Total</p>
-          <p>{{ div (mul $blocked 100) $total | printf "%.2f" }}%</p>
+          <p>Block Rate</p>
+          {{ if gt $total 0.0 }}
+            <p>{{ div (mul $blocked 100) $total | printf "%.2f" }}%</p>
+          {{ else }}
+            <p>0.00%</p>
+          {{ end }}
         </div>
       </div>
     {{ else }}
-      <div style="text-align: center; color: red;">
-        Failed to fetch NextDNS data: {{ .Response.StatusCode }}
+      <div style="text-align: center; color: var(--color-negative);">
+        Error: {{ .Response.StatusCode }} - {{ .Response.Status }}
       </div>
     {{ end }}
-```
+   ```
 
 ## Environment variables
 
-- `PROFILE_ID` - Your unique profile ID found in NextDNS control panel
-- `API_KEY` - Configure and unique api key in your user profile
+- `GHOSTFOLIO_URL` - the URL of the Ghostfolio instance
+- `GHOSTFOLIO_PUBLIC_URL` - You need to create a public acces url under menu My Ghostfolio -> Acces - Add
