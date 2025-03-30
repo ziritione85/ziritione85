@@ -4,6 +4,7 @@
 ```yaml
 - type: custom-api
   title: Ghostfolio
+  title-url: ${GHOSTFOLIO_URL}
   cache: 5m
   url: ${GHOSTFOLIO_PUBLIC_URL}
   # Replace with the URL of your Ghostfolio instance and your public access ID (My Ghostfolio/Access/Add new)
@@ -41,9 +42,6 @@
             </p>
           </div>
         </div>
-      </div>
-      <div style="text-align: center; margin-top: 10px;">
-        <a href="${GHOSTFOLIO_URL}">Access Ghostfolio →</a>
       </div>
     {{ else }}
       <div style="text-align: center; color: red;">
